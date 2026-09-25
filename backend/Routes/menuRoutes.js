@@ -52,11 +52,7 @@ router.put('/:id',async(req,res)=>{
         if(!menuItem){
             return res.status(404).json({message:'Menu item not found'});
         }
-        menuItem.name=req.body.name;
-        menuItem.description=req.body.description;
-        menuItem.price=req.body.price;
-        menuItem.category=req.body.category;
-        menuItem.image=req.body.image;
+        Object.assign(menuItem,req.body);
 
         const updatedMenuItem=await menuItem.save();
         res.json(updatedMenuItem);
