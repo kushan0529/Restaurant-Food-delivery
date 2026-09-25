@@ -28,6 +28,7 @@ router.get('/:id',async(req,res)=>{
 });
 
 
+//accessed by admin only
 router.post('/',async(req,res)=>{
     const menuItem=new Menuitems({
         name:req.body.name,
