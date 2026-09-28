@@ -4,6 +4,8 @@ const cors=require('cors');
 const connectDB=require('./Db/db');
 const menuRoutes=require('./Routes/menuRoutes');
 const orderRoutes=require('./Routes/orderRoutes');
+const adminRoutes=require('./Routes/adminRoutes')
+
 
 const app=express();
 app.use(cors({origin:"*"}));
@@ -12,6 +14,7 @@ connectDB();
 
 app.use('/api/menu',menuRoutes);
 app.use('/api/orders',orderRoutes);
+app.use('/api/admin',adminRoutes);
 
 app.get('/',(req,res)=>{
     res.send('Restaurant app backend is running');
