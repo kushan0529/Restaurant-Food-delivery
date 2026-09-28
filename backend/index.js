@@ -6,7 +6,7 @@ const menuRoutes=require('./Routes/menuRoutes');
 const orderRoutes=require('./Routes/orderRoutes');
 
 const app=express();
-app.use(cors());
+app.use(cors({origin:"*"}));
 app.use(express.json());
 connectDB();
 
@@ -18,6 +18,6 @@ app.get('/',(req,res)=>{
 });
 
 const PORT=process.env.PORT || 5001;
-app.listen(PORT,()=>{
+app.listen(PORT,'0.0.0.0',()=>{
     console.log(`Server is running on port ${PORT}`);
 })
