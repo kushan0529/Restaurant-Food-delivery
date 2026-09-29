@@ -5,13 +5,14 @@ const connectDB=require('./Db/db');
 const menuRoutes=require('./Routes/menuRoutes');
 const orderRoutes=require('./Routes/orderRoutes');
 const adminRoutes=require('./Routes/adminRoutes')
-
+const authRoutes=require('./Routes/authRoutes')
 
 const app=express();
 app.use(cors({origin:"*"}));
 app.use(express.json());
 connectDB();
 
+app.use('/api/auth',authRoutes);
 app.use('/api/menu',menuRoutes);
 app.use('/api/orders',orderRoutes);
 app.use('/api/admin',adminRoutes);

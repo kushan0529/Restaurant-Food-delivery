@@ -17,9 +17,15 @@ export default function Register() {
     if (form.mobile.length !== 10) return Alert.alert('Error', 'Enter a valid 10-digit mobile number');
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', form);
+      const res = await api.post('/auth/register', {
+        name :form.name,
+        mobilenumber:form.mobile,
+        password:form.password,
+        role:'customer'
+      });
       await login(res.data.user, res.data.token);
     } catch (err) {
+      console.log('Register error:', err.response?.data || err.message);
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong');
     } finally {
       setLoading(false);
