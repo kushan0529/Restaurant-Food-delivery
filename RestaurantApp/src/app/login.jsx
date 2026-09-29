@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'expo-router';
+import api from '../../src/api/axios';
+import { useAuth } from '../context/authContext';
 
-export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
+export default function Login() {
+  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const handleLogin = async () => {
-    if (!email || !password) return Alert.alert('Error', 'Fill in all fields');
+    if (!mobile || !password) return Alert.alert('Error', 'Fill in all fields');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { mobile, password });
       await login(res.data.user, res.data.token);
     } catch (err) {
       Alert.alert('Login Failed', err.response?.data?.message || 'Something went wrong');
@@ -27,11 +29,11 @@ export default function LoginScreen({ navigation }) {
       <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
+        placeholder="Mobile number"
+        value={mobile}
+        onChangeText={setMobile}
+        keyboardType="phone-pad"
+        maxLength={10}
       />
       <TextInput
         style={styles.input}
@@ -43,7 +45,7 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+      <TouchableOpacity onPress={() => router.push('/register')}>
         <Text style={styles.link}>Don't have an account? Register</Text>
       </TouchableOpacity>
     </View>
