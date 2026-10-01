@@ -28,7 +28,9 @@ function Guard() {
 export default function RootLayout() {
   return (
     <AuthProvider>
+
       <Guard />
+      
     </AuthProvider>
   );
 }
