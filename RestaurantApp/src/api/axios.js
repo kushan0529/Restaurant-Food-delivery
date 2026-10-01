@@ -5,8 +5,8 @@ const api = axios.create({
   baseURL: 'http://10.154.43.120:5001/api/'//'http://172.16.87.120:5001/api/', // your backend URL
 });
 
-api.interceptors.request.use((config) => {
-  const token = AsyncStorage.getItem('token');
+api.interceptors.request.use(async(config) => {
+  const token =await AsyncStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

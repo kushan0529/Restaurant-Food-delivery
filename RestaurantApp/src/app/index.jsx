@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, {user?.name}</Text>
-      <Text style={styles.subtitle}>Mobile: {user?.mobile}</Text>
+      <Text style={styles.subtitle}>Mobile: {user?.mobilenumber}</Text>
       <Text style={styles.subtitle}>Role: {user?.role}</Text>
       <TouchableOpacity style={styles.button} onPress={logout}>
         <Text style={styles.buttonText}>Logout</Text>

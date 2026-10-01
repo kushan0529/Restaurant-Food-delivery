@@ -19,7 +19,7 @@ export default function Register() {
     try {
       const res = await api.post('/auth/register', {
         name :form.name,
-        mobilenumber:form.mobile,
+        mobilenumber: form.mobile.trim(),
         password:form.password,
         role:'customer'
       });

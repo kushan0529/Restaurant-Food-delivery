@@ -15,7 +15,7 @@ export default function Login() {
     if (!mobile || !password) return Alert.alert('Error', 'Fill in all fields');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { mobile, password });
+      const res = await api.post('/auth/login', { mobilenumber: mobile.trim(), password });
       await login(res.data.user, res.data.token);
     } catch (err) {
       Alert.alert('Login Failed', err.response?.data?.message || 'Something went wrong');
