@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }); // .env in the backend root
 const mongoose = require('mongoose');
 const Menuitems = require('../Models/Menuitems');
 
@@ -29,7 +29,9 @@ const items = [
 
 (async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI); 
+    const uri = process.env.MONGO_URI ;
+    if (!uri) throw new Error('No Mongo connection string found. Check the variable name in your .env');
+    await mongoose.connect(uri);
     await Menuitems.deleteMany({});
     await Menuitems.insertMany(items);
     console.log(`Seeded ${items.length} menu items`);

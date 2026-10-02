@@ -6,7 +6,7 @@ const { protect, authorize } = require('../Middlewares/authMiddlewares');
 // PUBLIC: guests can browse the menu (no token needed)
 router.get('/', async (req, res) => {
     try {
-        const menuItems = await Menuitems.find({ isAvailable: true });
+        const menuItems = await Menuitems.find({ isAvailable: { $ne: false } });
         res.json(menuItems);
     } catch (err) {
         res.status(500).json({ message: err.message });
