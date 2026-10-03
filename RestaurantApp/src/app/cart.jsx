@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '../../src/api/axios';
 import { useCart } from '../../src/context/CartContext';
 import { useAuth } from '../../src/context/authContext';
+import { notify, confirmAction } from '../../src/utils/alert';
 
 export default function Cart() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function Cart() {
   const placeOrder = async () => {
     if (!user) return router.push('/login');
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      return Alert.alert('Missing details', 'Please fill in name, phone and address.');
+      return notify('Missing details', 'Please fill in name, phone and address.');
     }
     setPlacing(true);
     try {
@@ -29,10 +30,10 @@ export default function Cart() {
         items: items.map((i) => ({ menuItemId: i.menuItemId, variant: i.variant, quantity: i.quantity })),
       });
       clearCart();
-      Alert.alert('Order placed', 'Thank you! We have received your order.');
-      router.replace('/');
+      notify('Order placed', 'Thank you! You can track it here.');
+      router.replace('/orders');
     } catch (e) {
-      Alert.alert('Could not place order', e.response?.data?.message || 'Please try again.');
+      notify('Could not place order', e.response?.data?.message || 'Please try again.');
     } finally {
       setPlacing(false);
     }
