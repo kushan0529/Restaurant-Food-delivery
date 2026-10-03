@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, Text, FlatList, ScrollView, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '../../src/api/axios';
 import { useCart } from '../../src/context/CartContext';
@@ -56,27 +56,34 @@ export default function Menu() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>The Grill and Barbeque</Text>
-        <View style={{ alignItems: 'flex-end' }}>
-          <TouchableOpacity onPress={() => router.push('/cart')}>
-            <Text style={s.cart}>Cart ({count})</Text>
-          </TouchableOpacity>
-          {user ? (
-            <View style={{ flexDirection: 'row' }}>
-              <TouchableOpacity onPress={() => router.push('/profile')}>
-                <Text style={s.auth}>Profile</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={logout}>
-                <Text style={[s.auth, { marginLeft: 14 }]}>Logout</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity onPress={() => router.push('/login')}>
-              <Text style={s.auth}>Login</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <TouchableOpacity onPress={() => router.push('/cart')}>
+          <Text style={s.cart}>Cart ({count})</Text>
+        </TouchableOpacity>
       </View>
-
+      <View style={s.navRow}>
+        {user ? (
+          <>
+            {user.role === 'admin' && (
+              <TouchableOpacity onPress={() => router.push('/admin')}>
+                <Text style={[s.auth, s.adminLink]}>Admin</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={() => router.push('/orders')}>
+              <Text style={s.auth}>My Orders</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/profile')}>
+              <Text style={s.auth}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={logout}>
+              <Text style={s.auth}>Logout</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity onPress={() => router.push('/login')}>
+            <Text style={s.auth}>Login</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabs}>
         {categories.map((c) => (
           <TouchableOpacity key={c} onPress={() => setCategory(c)} style={[s.chip, category === c && s.chipActive]}>
@@ -94,6 +101,7 @@ export default function Menu() {
           const price = item.variants.find((v) => v.label === label)?.price;
           return (
             <View style={s.card}>
+              {!!item.image && <Image source={{ uri: item.image }} style={s.photo} />}
               <Text style={s.name}>{item.name}</Text>
               {!!item.description && <Text style={s.desc}>{item.description}</Text>}
               {item.variants.length > 1 && (
@@ -127,15 +135,18 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#111' },
   center: { flex: 1, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center', padding: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  title: { color: '#fff', fontSize: 20, fontWeight: '800', flexShrink: 1, marginRight: 10 },
   cart: { color: '#e8590c', fontSize: 16, fontWeight: '700' },
-  auth: { color: '#999', marginTop: 4 },
+  auth: { color: '#999', fontSize: 14 },
+  adminLink: { color: '#e8590c', fontWeight: '700' },
+  navRow: { flexDirection: 'row', gap: 18, paddingHorizontal: 16, paddingBottom: 8 },
   tabs: { flexGrow: 0, paddingHorizontal: 12 },
   chip: { borderWidth: 1, borderColor: '#444', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, marginRight: 8, marginTop: 6 },
   chipActive: { backgroundColor: '#e8590c', borderColor: '#e8590c' },
   chipText: { color: '#ccc', fontSize: 13 },
   card: { backgroundColor: '#1c1c1c', borderRadius: 12, padding: 14, marginBottom: 12 },
   name: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  photo: { width: '100%', height: 170, borderRadius: 10, marginBottom: 10, backgroundColor: '#2a2a2a' },
   desc: { color: '#999', marginTop: 2 },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
   price: { color: '#fff', fontSize: 18, fontWeight: '700' },
