@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
     const existing = await User.findOne({ mobilenumber });
     if (existing) return res.status(400).json({ success: false, message: 'User already exists' });
 
-    const user = await User.create({ name, mobilenumber, password, role });
+    const user = await User.create({ name, mobilenumber, password, role:'customer' });
     const token = generateToken(user);
 
     res.status(201).json({
