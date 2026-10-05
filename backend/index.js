@@ -6,12 +6,14 @@ const menuRoutes=require('./Routes/menuRoutes');
 const orderRoutes=require('./Routes/orderRoutes');
 const adminRoutes=require('./Routes/adminRoutes')
 const authRoutes=require('./Routes/authRoutes')
+const accountRoutes=require('./Routes/accountRoutes')
 
 const app=express();
 app.use(cors({origin:"*"}));
 app.use(express.json());
 connectDB();
 
+app.use('/api/account',accountRoutes);
 app.use('/api/auth',authRoutes);
 app.use('/api/menu',menuRoutes);
 app.use('/api/orders',orderRoutes);
