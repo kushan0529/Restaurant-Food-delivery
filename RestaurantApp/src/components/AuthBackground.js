@@ -12,7 +12,9 @@ const bg = require('../../assets/images/login-bg.jpg'); // put the artwork at as
 // The heading is part of the picture, so the form card sits below it.
 export default function AuthBackground({ title, subtitle, children }) {
   const { width, height } = useWindowDimensions();
-  const wide = width > height * 0.75; // desktop browser: show the whole picture instead of cropping it
+  // Keep the image dimensions stable while the keyboard changes the window height.
+  const [backgroundSize] = useState(() => ({ width, height }));
+  const wide = backgroundSize.width > backgroundSize.height * 0.75; // desktop browser: show the whole picture instead of cropping it
 
   // Track the keyboard height ourselves, so the form can lift above it on every phone
   const [kb, setKb] = useState(0);
@@ -29,7 +31,7 @@ export default function AuthBackground({ title, subtitle, children }) {
       {/* explicit width/height + resizeMode inside style, so the picture is always fitted to the screen */}
       <Image
         source={bg}
-        style={{ position: 'absolute', top: 0, left: 0, width, height, resizeMode: wide ? 'contain' : 'cover' }}
+        style={{ position: 'absolute', top: 0, left: 0, width: backgroundSize.width, height: backgroundSize.height, resizeMode: wide ? 'contain' : 'cover' }}
       />
 
       <View style={{ flex: 1 }}>
