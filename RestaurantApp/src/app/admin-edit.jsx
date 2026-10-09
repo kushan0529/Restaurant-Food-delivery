@@ -45,8 +45,24 @@ export default function AdminEdit() {
   if (loading) return <ActivityIndicator style={{ flex: 1, backgroundColor: '#111' }} color="#e8590c" />;
 
   const pickImage = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7 });
-    if (!res.canceled) setNewImage(res.assets[0]);
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      return notify('Permission required', 'Please allow photo library access to choose a photo.');
+    }
+
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: false,
+        allowsEditing: true,
+        aspect: [4, 3],
+        shape: 'rectangle',
+        quality: 0.7,
+      });
+      if (!res.canceled && res.assets?.[0]) setNewImage(res.assets[0]);
+    } catch (e) {
+      notify('Could not choose photo', 'Please try again.');
+    }
   };
 
   const updateVariant = (index, key, value) =>
