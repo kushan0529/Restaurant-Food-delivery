@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  pushTokens: { type: [String], default: [] },
   mobilenumber: {
   type: String,
   required: true,
