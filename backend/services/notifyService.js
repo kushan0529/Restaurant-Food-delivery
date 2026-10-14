@@ -1,5 +1,5 @@
 const { Expo } = require('expo-server-sdk');
-const User = require('../models/User');
+const User = require('../Models/user');
 
 const expo = new Expo();
 
