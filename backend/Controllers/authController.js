@@ -61,3 +61,14 @@ exports.savePushToken=async(req,res)=>{
 
 };
 
+
+exports.removePushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    await User.updateOne({ _id: req.user.id }, { $pull: { pushTokens: token } });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to remove token' });
+  }
+};
+

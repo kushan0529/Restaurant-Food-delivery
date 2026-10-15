@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({
@@ -38,6 +39,7 @@ export async function registerForPush(api) {
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
 
     await api.post('/auth/push-token', { token }); // axios already adds /api
+    await AsyncStorage.setItem('pushToken', token);
     return token;
   } catch (err) {
     console.log('Push registration failed:', err.message);

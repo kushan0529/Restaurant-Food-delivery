@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ScrollView, RefreshControl, Linking, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ScrollView, RefreshControl, Linking, ActivityIndicator, StyleSheet,Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import api from '../../src/api/axios';
 import { useAuth } from '../../src/context/authContext';
@@ -30,12 +31,22 @@ export default function AdminOrders() {
     }
   }, []);
 
-  // new orders show up on their own: refresh every 15 seconds
+  
+    // new orders show up instantly via push, with a 15-second refresh as a backup
   useEffect(() => {
     if (user?.role !== 'admin') return;
     load();
     const timer = setInterval(load, 15000);
-    return () => clearInterval(timer);
+
+    let sub;
+    if (Platform.OS !== 'web') {
+      sub = Notifications.addNotificationReceivedListener(() => load());
+    }
+
+    return () => {
+      clearInterval(timer);
+      sub?.remove();
+    };
   }, [user, load]);
 
   if (user?.role !== 'admin') {
