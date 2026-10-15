@@ -45,3 +45,19 @@ exports.login = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.savePushToken=async(req,res)=>{
+    try{
+      const {token}=req.body;
+      if(!token) return res.status(400).json({success:false,message:'Token is required'});
+
+      await User.updateOne(
+        {_id:req.user.id},
+        {$addToSet:{pushTokens:token}}
+      );
+    }catch(err){
+      res.status(500).json({message:"failed to save Token"});
+    }
+
+};
+

@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../Models/Order')
 const Menuitems = require('../Models/Menuitems');
 const { protect, authorize } = require('../Middlewares/authMiddlewares');
+const{ notifyAdminNewOrder, notifyCustomerStatus }=require('../services/notifyService');
 
 const STATUSES = ['received', 'preparing', 'ready', 'out for delivery', 'completed', 'cancelled'];
 
@@ -51,6 +52,9 @@ router.post('/', protect, async (req, res) => {
       items: orderItems,
       totalAmount,
     });
+
+    notifyAdminNewOrder(order).catch(console.error);
+
     res.status(201).json(order);
   } catch (err) {
     res.status(400).json({ message: 'Failed to place order', error: err.message });
@@ -77,6 +81,22 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+// GET /api/orders/:id - admin, or the customer who placed it (NEW)
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    const isMine = String(order.user) === req.user.id;
+    if (req.user.role !== 'admin' && !isMine) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    res.json(order);
+  } catch (err) {
+    res.status(400).json({ message: 'Invalid order id' });
+  }
+});
+
 // PUT /api/orders/:id - admin updates status
 router.put('/:id', protect, authorize('admin'), async (req, res) => {
   try {
@@ -86,6 +106,9 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
     }
     const updated = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
     if (!updated) return res.status(404).json({ message: 'Order not found' });
+
+    notifyCustomerStatus(updated).catch(console.error);
+
     res.json(updated);
   } catch (err) {
     res.status(400).json({ message: 'Failed to update order', error: err.message });

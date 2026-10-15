@@ -48,13 +48,13 @@ async function sendTelegram(text) {
   }
 }
 
-// New order -> owner (push + Telegram backup)
-async function notifyOwnerNewOrder(order) {
-  const owners = await User.find({ role: 'owner' }).select('pushTokens');
-  const tokens = owners.flatMap((o) => o.pushTokens);
+// New order -> admin (push + Telegram backup)
+async function notifyAdminNewOrder(order) {
+  const admins = await User.find({ role: 'admin' }).select('pushTokens');
+  const tokens = admins.flatMap((a) => a.pushTokens);
 
   const title = 'New order received';
-  const body = `Order #${String(order._id).slice(-6)} · ₹${order.totalAmount}`;
+  const body = `${order.customerName} · ₹${order.totalAmount} · #${String(order._id).slice(-6)}`;
 
   await Promise.all([
     sendPush(tokens, title, body, { orderId: String(order._id), type: 'new_order' }),
@@ -62,14 +62,14 @@ async function notifyOwnerNewOrder(order) {
   ]);
 }
 
-// Status change -> customer
 const STATUS_TEXT = {
-  accepted: 'Your order has been accepted ✅',
   preparing: 'Your food is being prepared 👨‍🍳',
-  out_for_delivery: 'Your order is out for delivery 🛵',
-  delivered: 'Delivered. Enjoy your meal! 🍽️',
+  ready: 'Your order is ready 🎉',
+  'out for delivery': 'Your order is out for delivery 🛵',
+  completed: 'Delivered. Enjoy your meal! 🍽️',
   cancelled: 'Your order was cancelled ❌',
 };
+
 
 async function notifyCustomerStatus(order) {
   const message = STATUS_TEXT[order.status];
@@ -87,4 +87,4 @@ async function notifyCustomerStatus(order) {
   // WhatsApp goes here later (same function, one more call)
 }
 
-module.exports = { notifyOwnerNewOrder, notifyCustomerStatus };
+module.exports = { notifyAdminNewOrder, notifyCustomerStatus };
