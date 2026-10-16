@@ -55,8 +55,9 @@ exports.savePushToken=async(req,res)=>{
         {_id:req.user.id},
         {$addToSet:{pushTokens:token}}
       );
+      res.json({success:true});
     }catch(err){
-      res.status(500).json({message:"failed to save Token"});
+      res.status(500).json({success:false,message:"Failed to save token"});
     }
 
 };

@@ -63,6 +63,7 @@ async function notifyAdminNewOrder(order) {
 }
 
 const STATUS_TEXT = {
+  received: 'Your order has been received ✅',
   preparing: 'Your food is being prepared 👨‍🍳',
   ready: 'Your order is ready 🎉',
   'out for delivery': 'Your order is out for delivery 🛵',

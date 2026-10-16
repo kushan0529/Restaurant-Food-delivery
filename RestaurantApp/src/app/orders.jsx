@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import api from '../../src/api/axios';
 import { useAuth } from '../../src/context/authContext';
 
@@ -54,7 +55,14 @@ export default function Orders() {
     if (!user) { setLoading(false); return; }
     load();
     const timer = setInterval(() => load(true), 15000);
-    return () => clearInterval(timer);
+    let sub;
+    if (Platform.OS !== 'web') {
+      sub = Notifications.addNotificationReceivedListener(() => load(true));
+    }
+    return () => {
+      clearInterval(timer);
+      sub?.remove();
+    };
   }, [user, load]);
 
   if (!user) {

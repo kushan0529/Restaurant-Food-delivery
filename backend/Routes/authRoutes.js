@@ -6,7 +6,7 @@ const {register,login,savePushToken,removePushToken}=require('../Controllers/aut
 
 router.post('/register',register);
 router.post('/login',login);
-router.post('push-token',protect,savePushToken);
-router.delete('push-token',protect,removePushToken)
+router.post('/push-token',protect,savePushToken);
+router.delete('/push-token',protect,removePushToken)
 
 module.exports=router;
