@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "89674371859",
+    "project_id": "grill-barbeque-5bcb5",
+    "storage_bucket": "grill-barbeque-5bcb5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89674371859:android:14e4c52d9abbe0eae780e6",
+        "android_client_info": {
+          "package_name": "com.grillbarbeque.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPssm88d2_l9EYzbu8G53kLiH_XHUab7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
