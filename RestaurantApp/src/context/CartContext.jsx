@@ -2,23 +2,38 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartContext = createContext(null);
-const KEY = 'cart';
 
-export function CartProvider({ children }) {
+export function CartProvider({ children, userId }) {
   // each item: { menuItemId, name, variant, price, quantity }
   // price here is for display only; the server recalculates it
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
+  const key = userId ? `cart:${userId}` : null;
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY)
-      .then((v) => { if (v) setItems(JSON.parse(v)); })
-      .finally(() => setLoaded(true));
-  }, []);
+    let active = true;
+    setLoaded(false);
+    setItems([]);
+
+    if (!key) {
+      setLoaded(true);
+      return () => { active = false; };
+    }
+
+    AsyncStorage.getItem(key)
+      .then((v) => {
+        if (active && v) setItems(JSON.parse(v));
+      })
+      .finally(() => {
+        if (active) setLoaded(true);
+      });
+
+    return () => { active = false; };
+  }, [key]);
 
   useEffect(() => {
-    if (loaded) AsyncStorage.setItem(KEY, JSON.stringify(items));
-  }, [items, loaded]);
+    if (loaded && key) AsyncStorage.setItem(key, JSON.stringify(items));
+  }, [items, loaded, key]);
 
   const addItem = (menuItem, variant) =>
     setItems((prev) => {

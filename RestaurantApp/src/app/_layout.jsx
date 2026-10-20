@@ -53,12 +53,22 @@ function Guard() {
   return <Slot />;
 }
 
+function AppProviders() {
+  const { user } = useAuth();
+
+  // Keep each account's cart separate. A logout switches this to null,
+  // which immediately removes the previous account's cart from memory.
+  return (
+    <CartProvider userId={user?.id}>
+      <Guard />
+    </CartProvider>
+  );
+}
+
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <Guard />
-      </CartProvider>
+      <AppProviders />
     </AuthProvider>
   );
 }
