@@ -4,6 +4,8 @@ const Order = require('../Models/Order')
 const Menuitems = require('../Models/Menuitems');
 const { protect, authorize } = require('../Middlewares/authMiddlewares');
 const{ notifyAdminNewOrder, notifyCustomerStatus }=require('../services/notifyService');
+const Payment = require('../Models/Payment');
+const { signCaptcha } = require('./paymentRoutes');
 
 const STATUSES = ['received', 'preparing', 'ready', 'out for delivery', 'completed', 'cancelled'];
 
@@ -11,7 +13,10 @@ const STATUSES = ['received', 'preparing', 'ready', 'out for delivery', 'complet
 // body: { customerName, customerPhone, deliveryAddress, items: [{ menuItemId, variant, quantity }] }
 router.post('/', protect, async (req, res) => {
   try {
-    const { customerName, customerPhone, deliveryAddress, items } = req.body;
+    const { customerName, customerPhone, deliveryAddress, items, paymentMethod, razorpayOrderId, paymentId, captchaToken, captchaAnswer } = req.body;
+    if (!['online', 'cod'].includes(paymentMethod)) {
+      return res.status(400).json({ message: 'Select online payment or cash on delivery' });
+    }
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Order must have at least one item' });
     }
@@ -44,6 +49,19 @@ router.post('/', protect, async (req, res) => {
     }
 
     const totalAmount = orderItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
+    if (paymentMethod === 'online') {
+      const payment = await Payment.findOne({ razorpayOrderId, paymentId, user: req.user.id, verified: true });
+      if (!payment || payment.amount !== totalAmount) {
+        return res.status(402).json({ message: 'Complete and verify payment before placing the order' });
+      }
+    } else {
+      const parts = String(captchaToken || '').split('.');
+      const [captchaText, expires, signature] = parts;
+      const validCaptcha = parts.length === 3 && Number(expires) > Date.now() &&
+        String(captchaAnswer || '').trim().toUpperCase() === captchaText &&
+        signCaptcha(captchaText, expires) === signature;
+      if (!validCaptcha) return res.status(400).json({ message: 'Enter the correct captcha' });
+    }
     const order = await Order.create({
       user: req.user.id,
       customerName,
@@ -51,6 +69,8 @@ router.post('/', protect, async (req, res) => {
       deliveryAddress,
       items: orderItems,
       totalAmount,
+      paymentMethod,
+      ...(paymentMethod === 'online' ? { paymentId } : {}),
     });
 
     notifyAdminNewOrder(order).catch(console.error);

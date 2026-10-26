@@ -7,6 +7,7 @@ const orderRoutes=require('./Routes/orderRoutes');
 const adminRoutes=require('./Routes/adminRoutes')
 const authRoutes=require('./Routes/authRoutes')
 const accountRoutes=require('./Routes/accountRoutes')
+const { router: paymentRoutes }=require('./Routes/paymentRoutes')
 
 const app=express();
 app.use(cors({origin:"*"}));
@@ -18,6 +19,7 @@ app.use('/api/auth',authRoutes);
 app.use('/api/menu',menuRoutes);
 app.use('/api/orders',orderRoutes);
 app.use('/api/admin',adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.get('/',(req,res)=>{
     res.send('Restaurant app backend is running');

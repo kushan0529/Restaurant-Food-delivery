@@ -19,6 +19,8 @@ const orderSchema = new mongoose.Schema(
     deliveryAddress: { type: String, required: true }, 
     items: { type: [orderItemSchema], required: true },
     totalAmount: { type: Number, required: true },
+    paymentMethod: { type: String, enum: ["online", "cod"], required: true },
+    paymentId: { type: String },
     status: {
       type: String,
       enum: ["received", "preparing", "ready", "out for delivery", "completed", "cancelled"],
