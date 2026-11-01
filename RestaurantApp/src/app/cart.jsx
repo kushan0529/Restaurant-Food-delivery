@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules,KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import RazorpayCheckout from 'react-native-razorpay';
 import api from '../../src/api/axios';
@@ -18,17 +18,26 @@ export default function Cart() {
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [captcha, setCaptcha] = useState(null);
   const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
 
   useEffect(() => {
     if (paymentMethod !== 'cod') return;
-    api.get('/payments/captcha').then(({ data }) => setCaptcha(data)).catch(() => notify('Captcha unavailable', 'Please try again.'));
+    setCaptcha(null);
     setCaptchaAnswer('');
+    setCaptchaLoading(true);
+    api.get('/payments/captcha')
+      .then(({ data }) => setCaptcha(data))
+      .catch(() => notify('Captcha unavailable', 'Please try again.'))
+      .finally(() => setCaptchaLoading(false));
   }, [paymentMethod]);
 
   const placeOrder = async () => {
     if (!user) return router.push('/login');
     if (!name.trim() || !phone.trim() || !address.trim()) {
       return notify('Missing details', 'Please fill in name, phone and address.');
+    }
+    if (paymentMethod === 'cod' && (!captcha || !captchaAnswer.trim())) {
+      return notify('Captcha required', 'Enter the captcha to place a cash-on-delivery order.');
     }
     setPlacing(true);
     try {
@@ -67,9 +76,8 @@ export default function Cart() {
         orderDetails.razorpayOrderId = payment.razorpay_order_id;
         orderDetails.paymentId = payment.razorpay_payment_id;
       } else {
-        if (!captcha || !captchaAnswer.trim()) return notify('Captcha required', 'Enter the captcha to place a cash-on-delivery order.');
         orderDetails.captchaToken = captcha.token;
-        orderDetails.captchaAnswer = captchaAnswer;
+        orderDetails.captchaAnswer = captchaAnswer.trim().toUpperCase();
       }
 
       await api.post('/orders', orderDetails);
@@ -134,7 +142,20 @@ export default function Cart() {
             {paymentMethod === 'cod' && captcha && (
               <View>
                 <Text style={s.captchaLabel}>Enter captcha: <Text style={s.captcha}>{captcha.text}</Text></Text>
-                <TextInput style={s.input} placeholder="Captcha" placeholderTextColor="#777" autoCapitalize="characters" value={captchaAnswer} onChangeText={setCaptchaAnswer} />
+                <KeyboardAvoidingView
+                >
+                <TextInput
+                  style={[s.input, s.captchaInput]}
+                  placeholder="Type the captcha"
+                  placeholderTextColor="#777"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  editable={!captchaLoading}
+                  selectionColor="#e8590c"
+                  value={captchaAnswer}
+                  onChangeText={(value) => setCaptchaAnswer(value.toUpperCase())}
+                />
+                </KeyboardAvoidingView>
               </View>
             )}
             <TouchableOpacity style={s.btn} onPress={placeOrder} disabled={placing}>
@@ -159,6 +180,7 @@ const s = StyleSheet.create({
   qty: { color: '#fff', fontSize: 16, minWidth: 20, textAlign: 'center' },
   total: { color: '#fff', fontSize: 20, fontWeight: '800', marginVertical: 14 },
   input: { backgroundColor: '#1c1c1c', color: '#fff', borderRadius: 10, padding: 12, marginBottom: 10 },
+  captchaInput: { color: '#fff', fontSize: 18, fontWeight: '700', letterSpacing: 2, borderWidth: 1, borderColor: '#555' },
   btn: { backgroundColor: '#e8590c', borderRadius: 10, padding: 14, alignItems: 'center' },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 10 },
