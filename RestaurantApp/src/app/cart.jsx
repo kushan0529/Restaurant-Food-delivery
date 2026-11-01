@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules } from 'react-native';
 import { useRouter } from 'expo-router';
 import RazorpayCheckout from 'react-native-razorpay';
 import api from '../../src/api/axios';
@@ -42,16 +42,27 @@ export default function Cart() {
 
       if (paymentMethod === 'online') {
         if (Platform.OS === 'web') throw new Error('Online payment is available in the Android/iOS app only.');
+        if (!NativeModules.RNRazorpayCheckout) {
+          throw new Error('UPI checkout is unavailable in this app build. Install the Android/iOS development build, not Expo Go.');
+        }
         const paymentOrder = await api.post('/payments/create-order', { items: orderDetails.items });
+        const gatewayOrder = paymentOrder.data?.order;
+        if (!paymentOrder.data?.key || !gatewayOrder?.id || !gatewayOrder?.amount || !gatewayOrder?.currency) {
+          throw new Error(paymentOrder.data?.message || 'Payment order was not created. Please try again.');
+        }
         const payment = await RazorpayCheckout.open({
           key: paymentOrder.data.key,
-          amount: paymentOrder.data.order.amount,
-          currency: paymentOrder.data.order.currency,
+          amount: gatewayOrder.amount,
+          currency: gatewayOrder.currency,
           name: 'The Grill and Barbeque',
           description: 'Food order payment',
-          order_id: paymentOrder.data.order.id,
+          order_id: gatewayOrder.id,
+          method: { upi: true },
           prefill: { name: name.trim(), contact: phone.trim() },
         });
+        if (!payment?.razorpay_order_id || !payment?.razorpay_payment_id || !payment?.razorpay_signature) {
+          throw new Error('UPI payment did not return valid confirmation details.');
+        }
         await api.post('/payments/verify', payment);
         orderDetails.razorpayOrderId = payment.razorpay_order_id;
         orderDetails.paymentId = payment.razorpay_payment_id;
