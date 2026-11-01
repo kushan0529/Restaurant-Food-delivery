@@ -32,13 +32,20 @@ router.get("/captcha", protect, (req, res) => {
 
 router.post("/create-order", protect, async (req, res) => {
   try {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ message: "Online payments are not configured on the server" });
+    }
     const { items } = req.body;
     if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: "Cart is empty" });
     const menuDocs = await Menuitems.find({ _id: { $in: items.map((item) => item.menuItemId) }, isAvailable: true });
     const pricedItems = calculateItems(items, menuDocs);
     if (pricedItems.some((item) => !item)) return res.status(400).json({ message: "Invalid or unavailable item in cart" });
     const amount = pricedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const gatewayOrder = await razorpay.orders.create({ amount: amount * 100, currency: "INR", receipt: `receipt_${Date.now()}` });
+    const amountInPaise = Math.round(amount * 100);
+    if (!Number.isInteger(amountInPaise) || amountInPaise < 100) {
+      return res.status(400).json({ message: "Order amount must be at least ₹1" });
+    }
+    const gatewayOrder = await razorpay.orders.create({ amount: amountInPaise, currency: "INR", receipt: `receipt_${Date.now()}` });
     await Payment.create({ user: req.user.id, razorpayOrderId: gatewayOrder.id, amount, currency: "INR" });
     res.status(201).json({ key: process.env.RAZORPAY_KEY_ID, order: gatewayOrder });
   } catch (error) {
