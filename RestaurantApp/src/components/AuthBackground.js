@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, Image, TextInput, TouchableOpacity, ScrollView, ActivityIndicator,
-  Keyboard, Platform, StyleSheet, useWindowDimensions,
+  KeyboardAvoidingView, Platform, StyleSheet, useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
@@ -16,30 +16,24 @@ export default function AuthBackground({ title, subtitle, children }) {
   const [backgroundSize] = useState(() => ({ width, height }));
   const wide = backgroundSize.width > backgroundSize.height * 0.75; // desktop browser: show the whole picture instead of cropping it
 
-  // Track the keyboard height ourselves, so the form can lift above it on every phone
-  const [kb, setKb] = useState(0);
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, (e) => setKb(e.endCoordinates.height));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKb(0));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
-
   return (
     <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
       {/* explicit width/height + resizeMode inside style, so the picture is always fitted to the screen */}
       <Image
         source={bg}
+        pointerEvents="none"
         style={{ position: 'absolute', top: 0, left: 0, width: backgroundSize.width, height: backgroundSize.height, resizeMode: wide ? 'contain' : 'cover' }}
       />
 
-      <View style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
         <ScrollView
-          // keyboard closed: card sits under the heading; keyboard open: card moves up and the keyboard's height is added below it
-          contentContainerStyle={[s.scroll, { paddingTop: kb ? 24 : height * 0.37, paddingBottom: kb + 24 }]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          contentContainerStyle={[s.scroll, { paddingTop: backgroundSize.height * 0.37 }]}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
           showsVerticalScrollIndicator={false}
         >
           <View style={s.card}>
@@ -48,7 +42,7 @@ export default function AuthBackground({ title, subtitle, children }) {
             {children}
           </View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }

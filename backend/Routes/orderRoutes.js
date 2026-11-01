@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const router = express.Router();
 const Order = require('../Models/Order')
 const Menuitems = require('../Models/Menuitems');
@@ -8,6 +9,22 @@ const Payment = require('../Models/Payment');
 const { signCaptcha } = require('./paymentRoutes');
 
 const STATUSES = ['received', 'preparing', 'ready', 'out for delivery', 'completed', 'cancelled'];
+
+function captchaMatches(answer, token) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 3) return false;
+
+  const [captchaText, expires, signature] = parts;
+  const normalizedText = String(captchaText || '').trim().toUpperCase();
+  const normalizedAnswer = String(answer || '').trim().toUpperCase();
+  if (!normalizedText || normalizedAnswer !== normalizedText || !/^\d+$/.test(expires) || Number(expires) <= Date.now()) {
+    return false;
+  }
+
+  const expected = signCaptcha(normalizedText, expires);
+  return signature.length === expected.length &&
+    crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
 
 // POST /api/orders - place order (login required)
 // body: { customerName, customerPhone, deliveryAddress, items: [{ menuItemId, variant, quantity }] }
@@ -55,12 +72,9 @@ router.post('/', protect, async (req, res) => {
         return res.status(402).json({ message: 'Complete and verify payment before placing the order' });
       }
     } else {
-      const parts = String(captchaToken || '').split('.');
-      const [captchaText, expires, signature] = parts;
-      const validCaptcha = parts.length === 3 && Number(expires) > Date.now() &&
-        String(captchaAnswer || '').trim().toUpperCase() === captchaText &&
-        signCaptcha(captchaText, expires) === signature;
-      if (!validCaptcha) return res.status(400).json({ message: 'Enter the correct captcha' });
+      if (!captchaMatches(captchaAnswer, captchaToken)) {
+        return res.status(400).json({ message: 'Enter the correct captcha' });
+      }
     }
     const order = await Order.create({
       user: req.user.id,

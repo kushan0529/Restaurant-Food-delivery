@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules,KeyboardAvoidingView } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import RazorpayCheckout from 'react-native-razorpay';
 import api from '../../src/api/axios';
@@ -107,7 +107,7 @@ export default function Cart() {
       <FlatList
         data={items}
         keyExtractor={(i) => i.menuItemId + i.variant}
-        contentContainerStyle={{ padding: 16, paddingTop: 56 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 42, paddingBottom: 28 }}
         renderItem={({ item }) => (
           <View style={s.row}>
             <View style={{ flex: 1 }}>
@@ -129,7 +129,7 @@ export default function Cart() {
             <Text style={s.total}>Total: ₹{total}</Text>
             <TextInput style={s.input} placeholder="Your name" placeholderTextColor="#777" value={name} onChangeText={setName} />
             <TextInput style={s.input} placeholder="Phone number" placeholderTextColor="#777" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-            <TextInput style={[s.input, { height: 80 }]} placeholder="Delivery address" placeholderTextColor="#777" multiline value={address} onChangeText={setAddress} />
+            <TextInput style={[s.input, s.addressInput]} placeholder="Delivery address" placeholderTextColor="#777" multiline textAlignVertical="top" value={address} onChangeText={setAddress} />
             <Text style={s.sectionTitle}>Payment method</Text>
             <View style={s.paymentRow}>
               <TouchableOpacity style={[s.paymentOption, paymentMethod === 'online' && s.paymentOptionOn]} onPress={() => setPaymentMethod('online')}>
@@ -142,8 +142,7 @@ export default function Cart() {
             {paymentMethod === 'cod' && captcha && (
               <View>
                 <Text style={s.captchaLabel}>Enter captcha: <Text style={s.captcha}>{captcha.text}</Text></Text>
-                <KeyboardAvoidingView
-                >
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <TextInput
                   style={[s.input, s.captchaInput]}
                   placeholder="Type the captcha"
@@ -172,22 +171,23 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#111' },
   center: { flex: 1, backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' },
   text: { color: '#fff', marginBottom: 12, fontSize: 16 },
-  back: { color: '#e8590c', fontSize: 16, fontWeight: '700', marginBottom: 14 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 12, padding: 12, marginBottom: 10 },
-  name: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  sub: { color: '#999' },
-  qtyBtn: { color: '#e8590c', fontSize: 26, paddingHorizontal: 12 },
-  qty: { color: '#fff', fontSize: 16, minWidth: 20, textAlign: 'center' },
-  total: { color: '#fff', fontSize: 20, fontWeight: '800', marginVertical: 14 },
-  input: { backgroundColor: '#1c1c1c', color: '#fff', borderRadius: 10, padding: 12, marginBottom: 10 },
-  captchaInput: { color: '#fff', fontSize: 18, fontWeight: '700', letterSpacing: 2, borderWidth: 1, borderColor: '#555' },
-  btn: { backgroundColor: '#e8590c', borderRadius: 10, padding: 14, alignItems: 'center' },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 10 },
-  paymentRow: { flexDirection: 'row', marginBottom: 12 },
-  paymentOption: { flex: 1, borderWidth: 1, borderColor: '#444', borderRadius: 10, padding: 12, marginRight: 8, alignItems: 'center' },
-  paymentOptionOn: { borderColor: '#e8590c', backgroundColor: 'rgba(232,89,12,0.15)' },
-  paymentText: { color: '#fff', fontWeight: '600', textAlign: 'center' },
-  captchaLabel: { color: '#bbb', marginBottom: 8 },
-  captcha: { color: '#fff', fontWeight: '800', letterSpacing: 3, fontSize: 18 },
+  back: { color: '#e8590c', fontSize: 20, lineHeight: 26, fontWeight: '500', marginBottom: 26 },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1c1c1c', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 17, marginBottom: 20 },
+  name: { color: '#fff', fontSize: 20, lineHeight: 26, fontWeight: '500' },
+  sub: { color: '#777', fontSize: 17, lineHeight: 23, marginTop: 1 },
+  qtyBtn: { color: '#e8590c', fontSize: 30, lineHeight: 32, fontWeight: '300', paddingHorizontal: 11 },
+  qty: { color: '#aaa', fontSize: 21, minWidth: 24, textAlign: 'center' },
+  total: { color: '#fff', fontSize: 28, lineHeight: 36, fontWeight: '700', marginTop: 48, marginBottom: 28 },
+  input: { height: 64, backgroundColor: '#1c1c1c', color: '#fff', borderRadius: 17, paddingHorizontal: 16, fontSize: 18, marginBottom: 16 },
+  addressInput: { height: 106, paddingTop: 17 },
+  captchaInput: { color: '#fff', fontSize: 18, fontWeight: '700', letterSpacing: 2, borderWidth: 2, borderColor: '#555', backgroundColor: 'transparent' },
+  btn: { height: 64, backgroundColor: '#f45a00', borderRadius: 18, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
+  btnText: { color: '#fff', fontWeight: '500', fontSize: 20 },
+  sectionTitle: { color: '#fff', fontSize: 23, lineHeight: 30, fontWeight: '500', marginTop: 10, marginBottom: 16 },
+  paymentRow: { flexDirection: 'row', marginBottom: 26 },
+  paymentOption: { flex: 1, height: 64, borderWidth: 2, borderColor: '#444', borderRadius: 17, paddingHorizontal: 8, marginRight: 10, alignItems: 'center', justifyContent: 'center' },
+  paymentOptionOn: { borderColor: '#e8590c', backgroundColor: 'rgba(232,89,12,0.16)' },
+  paymentText: { color: '#fff', fontSize: 18, fontWeight: '400', textAlign: 'center' },
+  captchaLabel: { color: '#777', fontSize: 18, lineHeight: 28, marginBottom: 12 },
+  captcha: { color: '#fff', fontWeight: '700', letterSpacing: 4, fontSize: 22 },
 });
