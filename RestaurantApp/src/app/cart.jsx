@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform, NativeModules, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -19,6 +19,7 @@ export default function Cart() {
   const [captcha, setCaptcha] = useState(null);
   const [captchaAnswer, setCaptchaAnswer] = useState('');
   const [captchaLoading, setCaptchaLoading] = useState(false);
+  const listRef = useRef(null);
 
   useEffect(() => {
     if (paymentMethod !== 'cod') return;
@@ -104,27 +105,35 @@ export default function Cart() {
 
   return (
     <View style={s.container}>
-      <FlatList
-        data={items}
-        keyExtractor={(i) => i.menuItemId + i.variant}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 42, paddingBottom: 28 }}
-        renderItem={({ item }) => (
-          <View style={s.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={s.name}>{item.name}</Text>
-              <Text style={s.sub}>{item.variant} · ₹{item.price}</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
+        <FlatList
+          ref={listRef}
+          data={items}
+          keyExtractor={(i) => i.menuItemId + i.variant}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 42, paddingBottom: 120 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          renderItem={({ item }) => (
+            <View style={s.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={s.name}>{item.name}</Text>
+                <Text style={s.sub}>{item.variant} · ₹{item.price}</Text>
+              </View>
+              <TouchableOpacity onPress={() => changeQty(item.menuItemId, item.variant, -1)}><Text style={s.qtyBtn}>−</Text></TouchableOpacity>
+              <Text style={s.qty}>{item.quantity}</Text>
+              <TouchableOpacity onPress={() => changeQty(item.menuItemId, item.variant, 1)}><Text style={s.qtyBtn}>+</Text></TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => changeQty(item.menuItemId, item.variant, -1)}><Text style={s.qtyBtn}>−</Text></TouchableOpacity>
-            <Text style={s.qty}>{item.quantity}</Text>
-            <TouchableOpacity onPress={() => changeQty(item.menuItemId, item.variant, 1)}><Text style={s.qtyBtn}>+</Text></TouchableOpacity>
-          </View>
-        )}
-        ListHeaderComponent={
-          <TouchableOpacity onPress={() => router.replace('/')}>
-            <Text style={s.back}>← Menu</Text>
-          </TouchableOpacity>
-        }
-        ListFooterComponent={
+          )}
+          ListHeaderComponent={
+            <TouchableOpacity onPress={() => router.replace('/')}>
+              <Text style={s.back}>← Menu</Text>
+            </TouchableOpacity>
+          }
+          ListFooterComponent={
           <View>
             <Text style={s.total}>Total: ₹{total}</Text>
             <TextInput style={s.input} placeholder="Your name" placeholderTextColor="#777" value={name} onChangeText={setName} />
@@ -142,7 +151,6 @@ export default function Cart() {
             {paymentMethod === 'cod' && captcha && (
               <View>
                 <Text style={s.captchaLabel}>Enter captcha: <Text style={s.captcha}>{captcha.text}</Text></Text>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                 <TextInput
                   style={[s.input, s.captchaInput]}
                   placeholder="Type the captcha"
@@ -153,16 +161,17 @@ export default function Cart() {
                   selectionColor="#e8590c"
                   value={captchaAnswer}
                   onChangeText={(value) => setCaptchaAnswer(value.toUpperCase())}
+                  onFocus={() => setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 250)}
                 />
-                </KeyboardAvoidingView>
               </View>
             )}
             <TouchableOpacity style={s.btn} onPress={placeOrder} disabled={placing}>
               {placing ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>{paymentMethod === 'online' ? 'Pay and place order' : 'Place COD order'}</Text>}
             </TouchableOpacity>
           </View>
-        }
-      />
+          }
+        />
+      </KeyboardAvoidingView>
     </View>
   );
 }
