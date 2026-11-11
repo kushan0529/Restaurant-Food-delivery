@@ -35,7 +35,10 @@ export async function registerForPush(api) {
     }
     if (status !== 'granted') return null;
 
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    // expoConfig is used in EAS builds; easConfig is available in some
+    // development-client environments.
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    if (!projectId) return null;
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
 
     await api.post('/auth/push-token', { token }); // axios already adds /api

@@ -1,7 +1,10 @@
 // razor pay for the payment gateway
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const Order = require("../Models/orderModel");
+// This legacy service is not mounted by the app, but keep its import valid for
+// callers that still require it. The active payment flow lives in
+// Routes/paymentRoutes.js.
+const Order = require("../Models/Order");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -65,4 +68,4 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, verifyPayment };    
+module.exports = { createOrder, verifyPayment };

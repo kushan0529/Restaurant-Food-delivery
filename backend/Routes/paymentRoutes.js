@@ -56,6 +56,9 @@ router.post("/create-order", protect, async (req, res) => {
 
 router.post("/verify", protect, async (req, res) => {
   try {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(503).json({ message: "Online payments are not configured on the server" });
+    }
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ message: "Incomplete payment details" });
     const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id, user: req.user.id });
